@@ -18,18 +18,57 @@ def subsets(arr):
     """ Returns non empty subsets of arr"""
     return chain(*[combinations(arr, i + 1) for i, a in enumerate(arr)])
 
+def determineMinSupElement(item, L1):
+    minSup = 1
+    for element in item:
+        if L1[frozenset([element])] < minSup:
+            minSup = L1[frozenset([element])]
+            _min = element
+    return frozenset([_min])
 
 def returnItemsWithMinSupport(itemSet, transactionList, minSupport, freqSet):
+        """calculates the support for items in the itemSet and returns a subset
+       of the itemSet each of whose elements satisfies the minimum support"""
+        T_ID = {}
+        L1 = {}
+        _itemSet = set()
+        localSet = defaultdict(int)
+        count = 0
+
+        for item in itemSet:
+                for index, transaction in enumerate(transactionList):
+                        count += 1
+                        if item.issubset(transaction):
+                                freqSet[item] += 1
+                                localSet[item] += 1
+                                if item in T_ID:
+                                    T_ID[item].append(index)
+                                else:
+                                    T_ID[item] = [index]
+
+        print "(For Optimization Comparison) Number of times compared: " + str(count)
+
+        for item, count in localSet.items():
+                support = float(count)/len(transactionList)
+
+                if support >= minSupport:
+                        _itemSet.add(item)
+                        L1[item] = support
+
+        return _itemSet , T_ID , L1
+
+def returnItemsWithMinSupport_improved(itemSet, transactionList, minSupport, freqSet, T_ID, L1):
         """calculates the support for items in the itemSet and returns a subset
        of the itemSet each of whose elements satisfies the minimum support"""
         _itemSet = set()
         localSet = defaultdict(int)
         count = 0
 
+
         for item in itemSet:
-                for transaction in transactionList:
+                for _id in T_ID[determineMinSupElement(item, L1)]: # improved version reduces number of compares
                         count += 1
-                        if item.issubset(transaction):
+                        if item.issubset(transactionList[_id]):
                                 freqSet[item] += 1
                                 localSet[item] += 1
 
@@ -40,6 +79,7 @@ def returnItemsWithMinSupport(itemSet, transactionList, minSupport, freqSet):
 
                 if support >= minSupport:
                         _itemSet.add(item)
+
         return _itemSet
 
 
@@ -68,6 +108,7 @@ def runApriori(data_iter, minSupport, minConfidence):
     """
     itemSet, transactionList = getItemSetTransactionList(data_iter)
 
+
     freqSet = defaultdict(int)
     largeSet = dict()
     # Global dictionary which stores (key=n-itemSets,value=support)
@@ -76,7 +117,7 @@ def runApriori(data_iter, minSupport, minConfidence):
     assocRules = dict()
     # Dictionary which stores Association Rules
 
-    oneCSet = returnItemsWithMinSupport(itemSet,
+    oneCSet, T_ID, L1 = returnItemsWithMinSupport(itemSet,
                                         transactionList,
                                         minSupport,
                                         freqSet)
@@ -86,10 +127,12 @@ def runApriori(data_iter, minSupport, minConfidence):
     while(currentLSet != set([])):
         largeSet[k-1] = currentLSet
         currentLSet = joinSet(currentLSet, k)
-        currentCSet = returnItemsWithMinSupport(currentLSet,
+        currentCSet = returnItemsWithMinSupport_improved(currentLSet,
                                                 transactionList,
                                                 minSupport,
-                                                freqSet)
+                                                freqSet,
+                                                T_ID,
+                                                L1)
         currentLSet = currentCSet
         k = k + 1
 
