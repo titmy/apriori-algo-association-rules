@@ -19,7 +19,7 @@ List of files
 Improved Apriori Algorithm
 -------------
 
-Idea for optimized execution for larger data sets: 
+### Idea for optimized execution for larger data sets: 
 
 Scan all transactions to generate L1 table L1(items, their support, their transaction IDs) >> Construct Ck by self-join >> Use L1 to identify the target transactions for Ck >> Scan the target transactions to generate Ck
 
@@ -38,7 +38,7 @@ The improvement of algorithm can be described as follows:
 (10) }
 ```
 
-Analysis of Improvement:
+### Analysis of Improvement:
 
 The first experiment compares the time consumed of original Apriori, and our improved algorithm by applying the five groups of transactions in the implementation. The result is shown in Figure 2.  
 
